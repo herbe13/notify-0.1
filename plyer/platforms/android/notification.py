@@ -40,8 +40,18 @@ class AndroidNotification(Notification):
     '''
 
     def __init__(self):
+        package_name = activity.getPackageName()
+
         self._ns = None
         self._channel_id = None
+
+        pm = activity.getPackageManager()
+        info = pm.getActivityInfo(activity.getComponentName(), 0)
+        if info.icon == 0:
+            # Take the application icon instead.
+            info = pm.getApplicationInfo(package_name, 0)
+
+        self._app_icon = info.icon
 
     def _get_notification_service(self):
         if not self._ns:
