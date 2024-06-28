@@ -40,17 +40,8 @@ class AndroidNotification(Notification):
     '''
 
     def __init__(self):
-        package_name = activity.getPackageName()
         self._ns = None
-        self._channel_id = package_name
-
-        pm = activity.getPackageManager()
-        info = pm.getActivityInfo(activity.getComponentName(), 0)
-        if info.icon == 0:
-            # Take the application icon instead.
-            info = pm.getApplicationInfo(package_name, 0)
-
-        self._app_icon = info.icon
+        self._channel_id = None
 
     def _get_notification_service(self):
         if not self._ns:
@@ -59,7 +50,7 @@ class AndroidNotification(Notification):
             ))
         return self._ns
 
-    def _build_notification_channel(self, name):
+    def _build_notification_channel(self, name, _id):
         '''
         Create a NotificationChannel using channel id of the application
         package name (com.xyz, org.xyz, ...) and channel name same as the
@@ -74,6 +65,9 @@ class AndroidNotification(Notification):
 
         channel = autoclass('android.app.NotificationChannel')
 
+        self._channel_id = activity.getPackageName()
+        self._channel_id = self._channel_id + str(_id)
+        
         app_channel = channel(
             self._channel_id, name, NotificationManager.IMPORTANCE_DEFAULT
         )
@@ -121,14 +115,14 @@ class AndroidNotification(Notification):
             )
             notification.setLargeIcon(bitmap_icon)
 
-    def _build_notification(self, title):
+    def _build_notification(self, title, custom_id):
         '''
         .. versionadded:: 1.4.0
         '''
         if SDK_INT < 26:
             noti = NotificationBuilder(activity)
         else:
-            self._channel = self._build_notification_channel(title)
+            self._channel = self._build_notification_channel(title, custom_id)
             noti = NotificationBuilder(activity, self._channel_id)
         return noti
 
@@ -162,16 +156,17 @@ class AndroidNotification(Notification):
         notification.setContentIntent(pending_intent)
         notification.setAutoCancel(True)
 
-    def _open_notification(self, notification):
+    def _open_notification(self, notification, _id):
         if SDK_INT >= 16:
             notification = notification.build()
         else:
             notification = notification.getNotification()
 
-        self._get_notification_service().notify(0, notification)
+        self._get_notification_service().notify(_id, notification)
 
     def _notify(self, **kwargs):
         noti = None
+        channel = kwargs.get('channel')
         message = kwargs.get('message').encode('utf-8')
         ticker = kwargs.get('ticker').encode('utf-8')
         title = AndroidString(
@@ -184,7 +179,7 @@ class AndroidNotification(Notification):
             self._toast(message)
             return
         else:
-            noti = self._build_notification(title)
+            noti = self._build_notification(title, channel)
 
         # set basic properties for notification
         noti.setContentTitle(title)
@@ -196,7 +191,7 @@ class AndroidNotification(Notification):
         self._set_open_behavior(noti)
 
         # launch
-        self._open_notification(noti)
+        self._open_notification(noti, channel)
 
 
 def instance():
