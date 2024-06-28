@@ -82,6 +82,7 @@ class Notification:
         '''
 
         self._notify(
+            channel=channel,
             title=title, message=message,
             app_icon=app_icon, app_name=app_name,
             timeout=timeout, ticker=ticker, toast=toast, hints=hints
