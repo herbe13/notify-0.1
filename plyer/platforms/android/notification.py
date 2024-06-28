@@ -26,6 +26,7 @@ AndroidString = autoclass('java.lang.String')
 Context = autoclass('android.content.Context')
 NotificationBuilder = autoclass('android.app.Notification$Builder')
 NotificationManager = autoclass('android.app.NotificationManager')
+Drawable = autoclass("{}.R$drawable".format(activity.getPackageName()))
 PendingIntent = autoclass('android.app.PendingIntent')
 Intent = autoclass('android.content.Intent')
 Toast = autoclass('android.widget.Toast')
@@ -40,18 +41,8 @@ class AndroidNotification(Notification):
     '''
 
     def __init__(self):
-        package_name = activity.getPackageName()
-
         self._ns = None
         self._channel_id = None
-
-        pm = activity.getPackageManager()
-        info = pm.getActivityInfo(activity.getComponentName(), 0)
-        if info.icon == 0:
-            # Take the application icon instead.
-            info = pm.getApplicationInfo(package_name, 0)
-
-        self._app_icon = info.icon
 
     def _get_notification_service(self):
         if not self._ns:
@@ -99,26 +90,32 @@ class AndroidNotification(Notification):
             Toast.LENGTH_LONG
         ).show()
 
-    def _set_icons(self, notification, icon=None):
+
+    @staticmethod
+
+    def _set_icons(notification, icon=None):
         '''
         Set the small application icon displayed at the top panel together with
         WiFi, battery percentage and time and the big optional icon (preferably
         PNG format with transparent parts) displayed directly in the
         notification body.
-
         .. versionadded:: 1.4.0
-        '''
-        app_icon = self._app_icon
-        notification.setSmallIcon(app_icon)
 
+        '''
+
+        app_icon = Drawable.your_icon_name_without_extensionname
+        notification.setSmallIcon(app_icon)
         bitmap_icon = app_icon
+
         if icon is not None:
             bitmap_icon = BitmapFactory.decodeFile(icon)
             notification.setLargeIcon(bitmap_icon)
+
         elif icon == '':
             # we don't want the big icon set,
             # only the small one in the top panel
             pass
+
         else:
             bitmap_icon = BitmapFactory.decodeResource(
                 python_act.getResources(), app_icon
