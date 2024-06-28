@@ -103,7 +103,7 @@ class AndroidNotification(Notification):
 
         '''
 
-        app_icon = Drawable.your_icon_name_without_extensionname
+        app_icon = Drawable.teste
         notification.setSmallIcon(app_icon)
         bitmap_icon = app_icon
 
